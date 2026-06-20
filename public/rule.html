@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Protocols</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0B0C10;
+        }
+
+        .terminal-box {
+            background: rgba(11, 12, 16, 0.9);
+            border: 1px solid rgba(116, 198, 157, 0.2);
+            border-left: 4px solid #2D6A4F;
+        }
+
+        /* Cascading Load Animation for the rules */
+        .load-anim {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: bootUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes bootUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stagger the delays */
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+        .delay-4 { animation-delay: 0.8s; }
+        .delay-5 { animation-delay: 1.0s; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+
+    <nav class="p-5 flex items-center gap-4 bg-[#0B0C10] sticky top-0 z-50 border-b border-white/5 shadow-2xl">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white active:scale-95 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <div>
+            <h1 class="text-lg font-bold tracking-widest text-white uppercase">System Protocols</h1>
+            <p class="text-[10px] text-[#74C69D] font-mono tracking-widest">v1.0.4 // NECTRRA</p>
+        </div>
+    </nav>
+
+    <main class="px-5 pt-8 max-w-md mx-auto space-y-6">
+        
+        <p class="text-sm text-slate-400 font-mono leading-relaxed load-anim delay-1">
+            > INITIALIZING AGREEMENT...<br>
+            > Accessing STRATA database.<br>
+            By accessing this terminal, you agree to the following operational directives established by <span class="text-white font-bold">NECTRRA</span>.
+        </p>
+
+        <div class="terminal-box p-5 rounded-r-xl load-anim delay-2">
+            <h3 class="text-[#74C69D] font-mono text-sm font-bold mb-2">[01] Corporate Structure</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                STRATA is an experimental fintech initiative and wholly-owned subsidiary startup operating under the parent conglomerate, <strong>NECTRRA</strong>. All intellectual property, UI/UX designs, and proprietary algorithms belong to the NECTRRA ecosystem.
+            </p>
+        </div>
+
+        <div class="terminal-box p-5 rounded-r-xl load-anim delay-3">
+            <h3 class="text-[#74C69D] font-mono text-sm font-bold mb-2">[02] Financial Disclaimer</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                The "Carbon Engine" provides portfolio allocation simulations based on current market metrics. STRATA does not act as a registered broker. All displayed investments are educational suggestions to offset carbon footprints.
+            </p>
+        </div>
+
+        <div class="terminal-box p-5 rounded-r-xl load-anim delay-4">
+            <h3 class="text-[#74C69D] font-mono text-sm font-bold mb-2">[03] Data Ethics</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                Your emission data (electricity, fuel, flights) is processed locally or securely synced via Google Cloud (for Pro users) strictly to calculate your environmental offset. NECTRRA will never sell your carbon data to third-party ad networks.
+            </p>
+        </div>
+
+        <div class="terminal-box p-5 rounded-r-xl load-anim delay-5">
+            <h3 class="text-[#74C69D] font-mono text-sm font-bold mb-2">[04] Premium Tier (PRO)</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                Upgrading to STRATA PRO unlocks advanced AI tax predictors and infinite asset tracking. Subscriptions are processed via direct UPI. Access is granted immediately upon verification of funds by the NECTRRA administration.
+            </p>
+        </div>
+
+    </main>
+</body>
+</html>

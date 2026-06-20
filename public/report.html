@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Cloud Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0B0C10; background-image: radial-gradient(circle at center, rgba(45, 106, 79, 0.1) 0%, #0B0C10 70%); background-attachment: fixed; }
+        .glass-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(116, 198, 157, 0.1); }
+        .tab-btn { padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: bold; color: #94a3b8; transition: all 0.3s; border: 1px solid transparent; }
+        .tab-btn.active { background: rgba(116, 198, 157, 0.1); color: #74C69D; border-color: rgba(116, 198, 157, 0.3); }
+
+        .leaf {
+            position: fixed;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            bottom: -50px;
+            animation: floatUp 15s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+    <script>
+        // Global Currency Configuration
+        window.strataCurrency = 'INR';
+        const currencyRates = {
+            'INR': { rate: 1.0, symbol: '₹' },
+            'USD': { rate: 0.012, symbol: '$' },
+            'EUR': { rate: 0.011, symbol: '€' },
+            'GBP': { rate: 0.0094, symbol: '£' },
+            'JPY': { rate: 1.8, symbol: '¥' }
+        };
+
+        function formatCurrency(inrAmount) {
+            const config = currencyRates[window.strataCurrency];
+            const converted = inrAmount * config.rate;
+            const decimals = window.strataCurrency === 'JPY' ? 0 : 2;
+            const displayAmt = converted.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+            return `${config.symbol}${displayAmt}`;
+        }
+
+        function changeCurrency(currencyCode) {
+            window.strataCurrency = currencyCode;
+            document.getElementById('currency-selector').value = currencyCode;
+            // Trigger UI update directly without losing slider states
+            if (window.currentAdviceState && typeof window.updateAdviceUI === 'function') {
+                const finalNetCO2 = window.currentAdviceState.totalCO2;
+                const neededInvest = finalNetCO2 > 0 ? Math.round(finalNetCO2 * 15) : 0;
+                const repInvestEl = document.getElementById('rep-invest');
+                if (repInvestEl) repInvestEl.innerHTML = formatCurrency(neededInvest);
+                
+                window.updateAdviceUI();
+            }
+        }
+    </script>
+</head>
+<body class="text-slate-100 min-h-screen pb-12 overflow-x-hidden">
+
+    <!-- Animated Background Leaves -->
+    <div class="leaf" style="left: 5%; animation-delay: 0s; font-size: 24px; animation-duration: 14s;">🍃</div>
+    <div class="leaf" style="left: 15%; animation-delay: 3s; font-size: 18px; animation-duration: 18s;">🌿</div>
+    <div class="leaf" style="left: 25%; animation-delay: 8s; font-size: 28px; animation-duration: 12s;">🍃</div>
+    <div class="leaf" style="left: 35%; animation-delay: 1s; font-size: 20px; animation-duration: 16s;">🌿</div>
+    <div class="leaf" style="left: 45%; animation-delay: 5s; font-size: 32px; animation-duration: 15s;">🍃</div>
+    <div class="leaf" style="left: 55%; animation-delay: 9s; font-size: 22px; animation-duration: 17s;">🍃</div>
+    <div class="leaf" style="left: 65%; animation-delay: 2s; font-size: 26px; animation-duration: 13s;">🌿</div>
+    <div class="leaf" style="left: 75%; animation-delay: 7s; font-size: 16px; animation-duration: 19s;">🍃</div>
+    <div class="leaf" style="left: 85%; animation-delay: 4s; font-size: 30px; animation-duration: 14s;">🌿</div>
+    <div class="leaf" style="left: 95%; animation-delay: 6s; font-size: 20px; animation-duration: 16s;">🍃</div>
+    <div class="leaf" style="left: 10%; animation-delay: 11s; font-size: 25px; animation-duration: 15s;">🌿</div>
+    <div class="leaf" style="left: 40%; animation-delay: 12s; font-size: 20px; animation-duration: 14s;">🍃</div>
+    <div class="leaf" style="left: 60%; animation-delay: 10s; font-size: 28px; animation-duration: 18s;">🍃</div>
+    <div class="leaf" style="left: 80%; animation-delay: 14s; font-size: 18px; animation-duration: 12s;">🌿</div>
+    <div class="leaf" style="left: 90%; animation-delay: 13s; font-size: 22px; animation-duration: 16s;">🍃</div>
+    <div class="leaf" style="left: 2%; animation-delay: 2s; font-size: 19px; animation-duration: 16s;">🌿</div>
+    <div class="leaf" style="left: 12%; animation-delay: 7s; font-size: 34px; animation-duration: 13s;">🍃</div>
+    <div class="leaf" style="left: 22%; animation-delay: 1s; font-size: 16px; animation-duration: 19s;">🌿</div>
+    <div class="leaf" style="left: 32%; animation-delay: 5s; font-size: 27px; animation-duration: 15s;">🍃</div>
+    <div class="leaf" style="left: 42%; animation-delay: 11s; font-size: 21px; animation-duration: 17s;">🍃</div>
+    <div class="leaf" style="left: 52%; animation-delay: 4s; font-size: 31px; animation-duration: 12s;">🌿</div>
+    <div class="leaf" style="left: 62%; animation-delay: 8s; font-size: 17px; animation-duration: 18s;">🍃</div>
+    <div class="leaf" style="left: 72%; animation-delay: 3s; font-size: 29px; animation-duration: 14s;">🌿</div>
+    <div class="leaf" style="left: 82%; animation-delay: 13s; font-size: 23px; animation-duration: 15s;">🍃</div>
+    <div class="leaf" style="left: 92%; animation-delay: 9s; font-size: 19px; animation-duration: 16s;">🌿</div>
+    <div class="leaf" style="left: 8%; animation-delay: 6s; font-size: 26px; animation-duration: 13s;">🍃</div>
+    <div class="leaf" style="left: 28%; animation-delay: 10s; font-size: 20px; animation-duration: 17s;">🌿</div>
+    <div class="leaf" style="left: 48%; animation-delay: 14s; font-size: 33px; animation-duration: 14s;">🍃</div>
+    <div class="leaf" style="left: 68%; animation-delay: 12s; font-size: 18px; animation-duration: 19s;">🌿</div>
+    <div class="leaf" style="left: 88%; animation-delay: 5s; font-size: 24px; animation-duration: 15s;">🍃</div>
+
+
+    <nav class="p-5 flex items-center gap-4 z-40 relative sticky top-0 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-[#74C69D] active:scale-95 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-widest text-white uppercase flex-1">Analytics</h1>
+        
+        <!-- CURRENCY SELECTOR -->
+        <div class="relative group">
+            <select id="currency-selector" onchange="changeCurrency(this.value)" class="appearance-none bg-slate-800/50 border border-[#74C69D]/30 text-[#74C69D] text-xs font-bold py-2 pl-3 pr-8 rounded-full outline-none focus:border-[#74C69D] cursor-pointer shadow-[0_0_10px_rgba(116,198,157,0.1)] transition-all">
+                <option value="INR">₹ INR</option>
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
+                <option value="JPY">¥ JPY</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#74C69D]">
+                <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        </div>
+    </nav>
+
+    <main class="px-5 pt-8 max-w-md mx-auto">
+        
+        <div id="loader" class="flex flex-col items-center justify-center mt-20 space-y-4">
+            <p class="text-xs text-[#74C69D] uppercase tracking-widest animate-pulse font-mono">Syncing with Cloud...</p>
+        </div>
+
+        <div id="data-state" class="hidden space-y-6">
+            <div class="text-center">
+                <p class="text-xs text-slate-400 font-mono tracking-widest uppercase mb-1">Current Ledger</p>
+                <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-[#74C69D]" id="user-display-name">Loading...</h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-card p-5 rounded-3xl border-l-4 border-[#74C69D]">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Total Liability</p>
+                    <p class="text-2xl font-bold text-white"><span id="rep-co2">0</span> <span class="text-xs text-[#74C69D]">kg</span></p>
+                </div>
+                <div class="glass-card p-5 rounded-3xl border-l-4 border-yellow-500">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Offset Required</p>
+                    <p class="text-2xl font-bold text-white"><span id="rep-invest">₹0</span></p>
+                </div>
+            </div>
+
+            <div class="glass-card p-5 rounded-3xl relative mt-6 shadow-[0_0_30px_rgba(116,198,157,0.05)]">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#74C69D]/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="flex justify-between items-center mb-4 relative z-10">
+                    <h3 class="text-sm font-bold text-slate-300">Emissions Graph</h3>
+                    <div id="historical-controls" class="flex gap-1 bg-black/40 p-1 rounded-full border border-white/5">
+                        <button onclick="switchChart('monthly')" id="tab-monthly" class="tab-btn active">12M</button>
+                        <button onclick="switchChart('quarterly')" id="tab-quarterly" class="tab-btn">QTR</button>
+                        <button onclick="switchChart('yearly')" id="tab-yearly" class="tab-btn">YRS</button>
+                    </div>
+                    <div id="realtime-controls" class="hidden flex gap-1 items-center">
+                        <span class="bg-red-500/20 text-red-400 text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-widest border border-red-500/30 flex items-center gap-1 mr-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"></span> Live
+                        </span>
+                        <input type="date" id="realtime-date-picker" class="bg-black/40 border border-white/10 rounded-xl px-3 py-1 text-xs text-white focus:border-[#74C69D] outline-none" onchange="window.renderRealtimeChart()">
+                    </div>
+                </div>
+
+                <div class="w-full h-48 relative z-10">
+                    <canvas id="carbonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Dynamic Advice Section -->
+            <div id="advice-section" class="mt-8 space-y-6 pb-8">
+                <!-- Advice Scope Toggle -->
+                <div id="advice-toggle-container" class="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/10">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Advice Scope</span>
+                    <div class="flex gap-1 bg-black/40 p-1 rounded-full border border-white/5">
+                        <button onclick="setAdviceScope('current')" id="btn-scope-current" class="tab-btn active text-[10px]">Selected Period</button>
+                        <button onclick="setAdviceScope('all-time')" id="btn-scope-all" class="tab-btn text-[10px]">All-Time</button>
+                    </div>
+                </div>
+
+                <div id="advice-content" class="space-y-4">
+                    <!-- Advice will be injected here via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFaSTwrX38nSEPudYm-8iJLwdoJXGCfM8",
+            authDomain: "strata-ca81c.firebaseapp.com",
+            projectId: "strata-ca81c",
+            storageBucket: "strata-ca81c.firebasestorage.app",
+            messagingSenderId: "863301861425",
+            appId: "1:863301861425:web:a3b02f32b262df517e5510",
+            measurementId: "G-PWVNP4LW7T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let globalCloudData = {}; 
+        let chartInstance = null; 
+        let isRealtime = false;
+        let currentAdviceScope = 'current';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('user-display-name').innerText = user.displayName || "STRATA User";
+                isRealtime = localStorage.getItem('realtimeMode') === 'on';
+                
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    document.getElementById('loader').classList.add('hidden');
+
+                    if (docSnap.exists() && docSnap.data().carbonFootprint) {
+                        globalCloudData = docSnap.data();
+                        
+                        let allTimeCO2 = 0;
+                        // Accumulate all existing buckets dynamically so total liability is accurate
+                        Object.keys(globalCloudData).forEach(key => {
+                            if(key.startsWith('month_') || key.startsWith('quarter_') || key.startsWith('year_') || key.startsWith('realtime_')) {
+                                allTimeCO2 += globalCloudData[key];
+                            }
+                        });
+                        
+                        if(allTimeCO2 === 0) allTimeCO2 = globalCloudData.carbonFootprint || 0;
+
+                        // Deduct logged actions from home.html
+                        const totalReduced = (globalCloudData.reduced || 0) + (globalCloudData.restored || 0);
+                        let finalNetCO2 = allTimeCO2 - totalReduced;
+                        if (finalNetCO2 < 0) finalNetCO2 = 0;
+
+                        document.getElementById('rep-co2').innerText = finalNetCO2.toLocaleString('en-IN', {maximumFractionDigits: 1});
+                        document.getElementById('rep-invest').innerText = "\u20B9" + Math.round(finalNetCO2 * 15).toLocaleString('en-IN');
+                        
+                        document.getElementById('data-state').classList.remove('hidden');
+                        
+                        if (isRealtime) {
+                            document.getElementById('historical-controls').classList.add('hidden');
+                            document.getElementById('realtime-controls').classList.remove('hidden');
+                            
+                            const tz = localStorage.getItem('userTimezone') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+                            const now = new Date();
+                            const todayStr = new Intl.DateTimeFormat('en-CA', {timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'}).format(now);
+                            document.getElementById('realtime-date-picker').value = todayStr;
+                            
+                            window.renderRealtimeChart();
+                        } else {
+                            window.switchChart('monthly');
+                        }
+                    }
+                } catch (error) { console.error("Error:", error); }
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        window.renderRealtimeChart = function() {
+            const selectedDate = document.getElementById('realtime-date-picker').value; 
+            if (!selectedDate) return;
+
+            const tz = localStorage.getItem('userTimezone') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let dateData = [];
+            
+            Object.keys(globalCloudData).forEach(key => {
+                if (key.startsWith('realtime_')) {
+                    const isoString = key.replace('realtime_', '');
+                    const d = new Date(isoString);
+                    const dStr = new Intl.DateTimeFormat('en-CA', {timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'}).format(d);
+                    
+                    if (dStr === selectedDate) {
+                        const timeStr = new Intl.DateTimeFormat('en-US', {timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true}).format(d);
+                        dateData.push({ timeStr: timeStr, timestamp: d.getTime(), value: globalCloudData[key] });
+                    }
+                }
+            });
+
+            dateData.sort((a,b) => a.timestamp - b.timestamp);
+
+            let labels = [];
+            let chartData = [];
+            if (dateData.length === 0) {
+                labels = ["12 AM", "6 AM", "12 PM", "6 PM"];
+                chartData = [0, 0, 0, 0];
+            } else if (dateData.length === 1) {
+                labels = ["Start", dateData[0].timeStr, "End"];
+                chartData = [0, dateData[0].value, 0];
+            } else {
+                dateData.forEach(d => {
+                    labels.push(d.timeStr);
+                    chartData.push(d.value);
+                });
+            }
+
+            renderChart(labels, chartData, 'Hourly CO\u2082 (kg)');
+            
+            const dayTotal = chartData.reduce((a, b) => a + b, 0);
+            if (currentAdviceScope === 'current') {
+                updateTopCardsAndAdvice(dayTotal);
+            } else {
+                updateTopCardsAndAdvice(calculateAllTimeRealtime());
+            }
+        }
+
+        window.calculateAllTimeRealtime = function() {
+            let total = 0;
+            Object.keys(globalCloudData).forEach(key => {
+                if (key.startsWith('realtime_')) {
+                    total += globalCloudData[key];
+                }
+            });
+            return total;
+        }
+
+        window.setAdviceScope = function(scope) {
+            currentAdviceScope = scope;
+            document.getElementById('btn-scope-current').className = "tab-btn text-[10px]" + (scope==='current' ? ' active' : '');
+            document.getElementById('btn-scope-all').className = "tab-btn text-[10px]" + (scope==='all-time' ? ' active' : '');
+            if (isRealtime) {
+                window.renderRealtimeChart();
+            } else {
+                // Determine which historical tab is active
+                const isMonthly = document.getElementById('tab-monthly').classList.contains('active');
+                const isQuarterly = document.getElementById('tab-quarterly').classList.contains('active');
+                if (isMonthly) window.switchChart('monthly');
+                else if (isQuarterly) window.switchChart('quarterly');
+                else window.switchChart('yearly');
+            }
+        }
+
+        window.switchChart = function(type) {
+            document.getElementById('tab-monthly').className = "tab-btn" + (type==='monthly' ? ' active' : '');
+            document.getElementById('tab-quarterly').className = "tab-btn" + (type==='quarterly' ? ' active' : '');
+            document.getElementById('tab-yearly').className = "tab-btn" + (type==='yearly' ? ' active' : '');
+
+            let labels = [];
+            let chartData = [];
+
+            if (type === 'monthly') {
+                labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                for(let i=1; i<=12; i++) { chartData.push(globalCloudData["month_" + i] || 0); }
+            } 
+            else if (type === 'quarterly') {
+                labels = ["Q1", "Q2", "Q3", "Q4"];
+                chartData = [
+                    globalCloudData["quarter_Q1"] || 0,
+                    globalCloudData["quarter_Q2"] || 0,
+                    globalCloudData["quarter_Q3"] || 0,
+                    globalCloudData["quarter_Q4"] || 0
+                ];
+            } 
+            else if (type === 'yearly') {
+                let availableYears = Object.keys(globalCloudData)
+                    .filter(k => k.startsWith("year_"))
+                    .map(k => parseInt(k.replace("year_", "")))
+                    .sort((a,b) => a - b);
+                
+                if(availableYears.length === 0) {
+                    const y = new Date().getFullYear();
+                    labels = [(y-1).toString(), y.toString(), (y+1).toString()];
+                    chartData = [0, 0, 0];
+                } else if (availableYears.length === 1) {
+                    const y = availableYears[0];
+                    labels = [(y-1).toString(), y.toString(), (y+1).toString()];
+                    chartData = [0, globalCloudData["year_"+y], 0];
+                } else {
+                    const minYear = availableYears[0];
+                    const maxYear = availableYears[availableYears.length - 1];
+                    for(let y = minYear; y <= maxYear; y++) {
+                        labels.push(y.toString());
+                        chartData.push(globalCloudData["year_"+y] || 0);
+                    }
+                }
+            }
+
+            renderChart(labels, chartData, 'Recorded CO\u2082 (kg)');
+            const total = chartData.reduce((a, b) => a + b, 0);
+            if (currentAdviceScope === 'current') {
+                updateTopCardsAndAdvice(total);
+            } else {
+                updateTopCardsAndAdvice(calculateAllTimeHistorical());
+            }
+        }
+
+        window.calculateAllTimeHistorical = function() {
+            let total = 0;
+            Object.keys(globalCloudData).forEach(key => {
+                if(key.startsWith('month_') || key.startsWith('quarter_') || key.startsWith('year_')) {
+                    total += globalCloudData[key];
+                }
+            });
+            if(total === 0) total = globalCloudData.carbonFootprint || 0;
+            return total;
+        }
+
+        window.updateTopCardsAndAdvice = function(generatedCO2) {
+            let finalNetCO2 = generatedCO2;
+
+            if (currentAdviceScope === 'all-time') {
+                const totalReduced = (globalCloudData.reduced || 0) + (globalCloudData.restored || 0);
+                finalNetCO2 = generatedCO2 - totalReduced;
+            }
+
+            document.getElementById('rep-co2').innerText = finalNetCO2.toLocaleString('en-IN', {maximumFractionDigits: 1});
+            const neededInvest = finalNetCO2 > 0 ? Math.round(finalNetCO2 * 15) : 0;
+            document.getElementById('rep-invest').innerHTML = formatCurrency(neededInvest);
+            
+            renderAdvice(finalNetCO2);
+        }
+
+        window.renderAdvice = function(totalCO2) {
+            const container = document.getElementById('advice-content');
+            if (totalCO2 <= 0) {
+                container.innerHTML = `<div class="glass-card p-6 rounded-3xl text-center text-slate-500 text-sm border border-white/5">No emissions recorded for this timeframe. You're completely green!</div>`;
+                return;
+            }
+
+            let months = 1;
+            if (currentAdviceScope === 'all-time') {
+                let availableYears = Object.keys(globalCloudData).filter(k => k.startsWith("year_"));
+                months = Math.max(1, availableYears.length) * 12;
+            } else if (!isRealtime) {
+                if (document.getElementById('tab-monthly').classList.contains('active')) months = 12;
+                else if (document.getElementById('tab-quarterly').classList.contains('active')) months = 12;
+                else if (document.getElementById('tab-yearly').classList.contains('active')) {
+                    let availableYears = Object.keys(globalCloudData).filter(k => k.startsWith("year_"));
+                    months = Math.max(1, availableYears.length) * 12;
+                }
+            } else {
+                months = 1/30;
+            }
+
+            window.currentAdviceState = {
+                totalCO2: totalCO2,
+                months: months,
+                treePct: 33,
+                cyclePct: 33,
+                recyclePct: 33
+            };
+
+            container.innerHTML = `
+                <div class="glass-card p-5 rounded-3xl border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                    <h3 class="text-sm font-semibold text-[#74C69D] mb-4 uppercase tracking-wider flex items-center gap-2"><span class="text-emerald-400">&#9851;</span> Green Action Allocator</h3>
+                    <p class="text-xs text-slate-400 mb-4">Offset footprint with physical actions. Unrealistic goals are capped by benchmarks.</p>
+                    <div class="space-y-4" id="sliders-container">
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="text-white text-xs font-bold flex items-center gap-1">&#127795; Plant Trees</span>
+                                <span class="text-emerald-400 font-mono font-bold text-sm"><span id="val-trees">0</span> <span class="text-[10px] text-slate-400">(<span id="co2-trees">0</span>kg)</span></span>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="0" max="100" value="33" id="slider-trees" class="w-full accent-emerald-500" oninput="window.currentAdviceState.treePct=this.value; document.getElementById('input-trees').value=this.value; window.updateAdviceUI()">
+                                <div class="relative w-16 shrink-0">
+                                    <input type="number" min="0" max="100" value="33" id="input-trees" class="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:border-emerald-500 outline-none pr-4 text-right" oninput="window.currentAdviceState.treePct=this.value; document.getElementById('slider-trees').value=this.value; window.updateAdviceUI()">
+                                    <span class="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none">%</span>
+                                </div>
+                            </div>
+                            <div id="warn-trees"></div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="text-white text-xs font-bold flex items-center gap-1">&#128690; Cycle Instead</span>
+                                <span class="text-blue-400 font-mono font-bold text-sm"><span id="val-cycle">0</span> km <span class="text-[10px] text-slate-400">(<span id="co2-cycle">0</span>kg)</span></span>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="0" max="100" value="33" id="slider-cycle" class="w-full accent-blue-500" oninput="window.currentAdviceState.cyclePct=this.value; document.getElementById('input-cycle').value=this.value; window.updateAdviceUI()">
+                                <div class="relative w-16 shrink-0">
+                                    <input type="number" min="0" max="100" value="33" id="input-cycle" class="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:border-blue-500 outline-none pr-4 text-right" oninput="window.currentAdviceState.cyclePct=this.value; document.getElementById('slider-cycle').value=this.value; window.updateAdviceUI()">
+                                    <span class="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none">%</span>
+                                </div>
+                            </div>
+                            <div id="warn-cycle"></div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="text-white text-xs font-bold flex items-center gap-1">&#9851; Recycle E-Waste</span>
+                                <span class="text-teal-400 font-mono font-bold text-sm"><span id="val-recycle">0</span> kg <span class="text-[10px] text-slate-400">(<span id="co2-recycle">0</span>kg)</span></span>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="0" max="100" value="33" id="slider-recycle" class="w-full accent-teal-500" oninput="window.currentAdviceState.recyclePct=this.value; document.getElementById('input-recycle').value=this.value; window.updateAdviceUI()">
+                                <div class="relative w-16 shrink-0">
+                                    <input type="number" min="0" max="100" value="33" id="input-recycle" class="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:border-teal-500 outline-none pr-4 text-right" oninput="window.currentAdviceState.recyclePct=this.value; document.getElementById('slider-recycle').value=this.value; window.updateAdviceUI()">
+                                    <span class="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none">%</span>
+                                </div>
+                            </div>
+                            <div id="warn-recycle"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="portfolio-container" class="mt-4"></div>
+            `;
+
+            window.updateAdviceUI();
+        }
+
+        window.updateAdviceUI = function() {
+            const state = window.currentAdviceState;
+            
+            const maxTreeCO2 = 50 * state.months; 
+            const maxCycleCO2 = 20 * state.months; 
+            const maxRecycleCO2 = 28 * state.months; 
+
+            let reqTreeCO2 = state.totalCO2 * (state.treePct / 100);
+            let reqCycleCO2 = state.totalCO2 * (state.cyclePct / 100);
+            let reqRecycleCO2 = state.totalCO2 * (state.recyclePct / 100);
+
+            let actTreeCO2 = Math.min(reqTreeCO2, maxTreeCO2);
+            let actCycleCO2 = Math.min(reqCycleCO2, maxCycleCO2);
+            let actRecycleCO2 = Math.min(reqRecycleCO2, maxRecycleCO2);
+
+            let totalPhysicalCO2 = actTreeCO2 + actCycleCO2 + actRecycleCO2;
+            
+            if (totalPhysicalCO2 > state.totalCO2) {
+                const ratio = state.totalCO2 / totalPhysicalCO2;
+                actTreeCO2 *= ratio;
+                actCycleCO2 *= ratio;
+                actRecycleCO2 *= ratio;
+                totalPhysicalCO2 = state.totalCO2;
+            }
+
+            const remainingCO2 = state.totalCO2 - totalPhysicalCO2;
+
+            const treesNeeded = Math.ceil(actTreeCO2 / 10);
+            const cycleKm = Math.ceil(actCycleCO2 / 0.2);
+            const recycleKg = Math.ceil(actRecycleCO2 / 1.4);
+
+            document.getElementById('val-trees').innerText = treesNeeded;
+            document.getElementById('co2-trees').innerText = actTreeCO2.toFixed(1);
+            document.getElementById('warn-trees').innerHTML = reqTreeCO2 > maxTreeCO2 ? '<p class="text-[9px] text-red-400 mt-1">Benchmark Limit Reached (Max ' + Math.ceil(maxTreeCO2/10) + ' trees)</p>' : '';
+
+            document.getElementById('val-cycle').innerText = cycleKm;
+            document.getElementById('co2-cycle').innerText = actCycleCO2.toFixed(1);
+            document.getElementById('warn-cycle').innerHTML = reqCycleCO2 > maxCycleCO2 ? '<p class="text-[9px] text-red-400 mt-1">Benchmark Limit Reached (Max ' + Math.ceil(maxCycleCO2/0.2) + ' km)</p>' : '';
+
+            document.getElementById('val-recycle').innerText = recycleKg;
+            document.getElementById('co2-recycle').innerText = actRecycleCO2.toFixed(1);
+            document.getElementById('warn-recycle').innerHTML = reqRecycleCO2 > maxRecycleCO2 ? '<p class="text-[9px] text-red-400 mt-1">Benchmark Limit Reached (Max ' + Math.ceil(maxRecycleCO2/1.4) + ' kg)</p>' : '';
+
+            const portfolioContainer = document.getElementById('portfolio-container');
+            if (remainingCO2 > 0.1) {
+                const suggestedInvestment = Math.round(remainingCO2 * 15);
+                const allocs = [
+                    {name: "Tata Power", perc: 0.30, color: "border-[#74C69D]"},
+                    {name: "Adani Green", perc: 0.25, color: "border-[#74C69D]"},
+                    {name: "IREDA", perc: 0.20, color: "border-[#74C69D]"},
+                    {name: "Suzlon Energy", perc: 0.15, color: "border-[#74C69D]"},
+                    {name: "Green Bonds", perc: 0.10, color: "border-slate-600 opacity-80"}
+                ];
+
+                let html = `<div class="glass-card p-5 rounded-3xl border border-[#74C69D]/20 shadow-[0_0_20px_rgba(116,198,157,0.05)]">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 uppercase tracking-wider flex items-center gap-2"><span class="text-[#74C69D]">&#128188;</span> Portfolio Offset</h3>
+                    <p class="text-xs text-slate-400 mb-4">Invest in Green Stocks to offset the remaining <span class="text-[#74C69D] font-bold">${remainingCO2.toFixed(1)} kg</span>.</p>
+                    <div class="space-y-2">`;
+                allocs.forEach(a => {
+                    const amt = Math.round(suggestedInvestment * a.perc);
+                    html += `
+                        <div class="flex justify-between items-center border-l-2 ${a.color} pl-3 py-1 bg-white/5 rounded-r-lg">
+                            <div><p class="font-bold text-xs text-white">${a.name}</p></div>
+                            <div class="text-right"><p class="font-mono text-xs text-[#74C69D] font-bold">${formatCurrency(amt)}</p></div>
+                        </div>`;
+                });
+                html += `</div></div>`;
+                portfolioContainer.innerHTML = html;
+            } else {
+                portfolioContainer.innerHTML = `<div class="glass-card p-5 rounded-3xl border border-emerald-500/20 text-center"><p class="text-xs text-emerald-400 font-bold">100% of footprint covered by physical actions!</p></div>`;
+            }
+        }
+
+        function renderChart(labels, chartData, datasetLabel) {
+            if (chartInstance) { chartInstance.destroy(); }
+
+            const ctx = document.getElementById('carbonChart').getContext('2d');
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(116, 198, 157, 0.5)');
+            gradient.addColorStop(1, 'rgba(116, 198, 157, 0.0)');
+
+            chartInstance = new Chart(ctx, {
+                type: 'line', 
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: chartData,
+                        backgroundColor: gradient,
+                        borderColor: '#74C69D',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#0B0C10',
+                        pointBorderColor: '#74C69D',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { color: '#94a3b8' },
+                            beginAtZero: true 
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

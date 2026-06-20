@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Carbon Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top right, #2D6A4F 0%, #0B0C10 50%, #0B0C10 100%); background-attachment: fixed; overflow-x: hidden; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.5s ease; }
+        .input-field { width: 100%; background: rgba(11, 12, 16, 0.8); border: 1px solid rgba(116, 198, 157, 0.3); color: #f8fafc; padding: 0.75rem 1rem; border-radius: 0.75rem; outline: none; transition: border-color 0.3s ease; }
+        .input-field:focus { border-color: #74C69D; box-shadow: 0 0 10px rgba(116, 198, 157, 0.2); }
+        #results { max-height: 0; overflow: hidden; transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease; opacity: 0; }
+        #results.show { max-height: 2000px; opacity: 1; margin-top: 1.5rem; }
+
+        .weather-card { position: relative; overflow: hidden; }
+        .particle { position: absolute; top: -30px; pointer-events: none; animation: fall linear infinite; }
+        .snow { background: white; border-radius: 50%; opacity: 0.8; }
+        .leaf { background: #d97706; border-radius: 0 50% 50% 50%; opacity: 0.7; transform: rotate(45deg); }
+        .petal { background: #fbcfe8; border-radius: 50% 0 50% 50%; opacity: 0.8; }
+        
+        @keyframes fall { 
+            0% { transform: translateY(0px) rotate(0deg) translateX(0); opacity: 0; } 
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(350px) rotate(360deg) translateX(20px); opacity: 0; } 
+        }
+        
+        .sun-glow { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 150px; height: 150px; background: radial-gradient(circle, rgba(253, 224, 71, 0.4) 0%, transparent 70%); animation: pulseSun 4s infinite alternate; pointer-events: none; }
+        @keyframes pulseSun { 0% { transform: translateX(-50%) scale(1); opacity: 0.5; } 100% { transform: translateX(-50%) scale(1.5); opacity: 0.8; } }
+
+        .bg-leaf {
+            position: fixed;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            bottom: -50px;
+            animation: floatUpBg 15s linear infinite;
+        }
+
+        @keyframes floatUpBg {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+    <script>
+        // Global Currency Configuration
+        window.strataCurrency = 'INR';
+        const currencyRates = {
+            'INR': { rate: 1.0, symbol: '₹' },
+            'USD': { rate: 0.012, symbol: '$' },
+            'EUR': { rate: 0.011, symbol: '€' },
+            'GBP': { rate: 0.0094, symbol: '£' },
+            'JPY': { rate: 1.8, symbol: '¥' }
+        };
+
+        function formatCurrency(inrAmount) {
+            const config = currencyRates[window.strataCurrency];
+            const converted = inrAmount * config.rate;
+            // For JPY, no decimals. For others, max 2 decimals.
+            const decimals = window.strataCurrency === 'JPY' ? 0 : 2;
+            const displayAmt = converted.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+            return `${config.symbol}${displayAmt}`;
+        }
+
+        function changeCurrency(currencyCode) {
+            window.strataCurrency = currencyCode;
+            document.getElementById('currency-selector').value = currencyCode;
+            // If calculator has results, re-render them
+            if (typeof calculateImpact === 'function' && document.getElementById('results').classList.contains('show')) {
+                calculateImpact();
+            }
+        }
+        
+        // Country to Timezone/Currency Map
+        const countrySyncMap = {
+            'local': { tz: Intl.DateTimeFormat().resolvedOptions().timeZone, curr: 'INR' },
+            'usa': { tz: 'America/New_York', curr: 'USD' },
+            'uk': { tz: 'Europe/London', curr: 'GBP' },
+            'euro': { tz: 'Europe/Berlin', curr: 'EUR' },
+            'japan': { tz: 'Asia/Tokyo', curr: 'JPY' }
+        };
+
+        function changeCountrySync(countryKey) {
+            const config = countrySyncMap[countryKey];
+            window.realtimeTimezone = config.tz;
+            changeCurrency(config.curr); // Auto-adjust currency!
+        }
+    </script>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+
+    <!-- Animated Background Leaves -->
+    <div class="bg-leaf" style="left: 5%; animation-delay: 0s; font-size: 24px; animation-duration: 14s;">🍃</div>
+    <div class="bg-leaf" style="left: 15%; animation-delay: 3s; font-size: 18px; animation-duration: 18s;">🌿</div>
+    <div class="bg-leaf" style="left: 25%; animation-delay: 8s; font-size: 28px; animation-duration: 12s;">🍃</div>
+    <div class="bg-leaf" style="left: 35%; animation-delay: 1s; font-size: 20px; animation-duration: 16s;">🌿</div>
+    <div class="bg-leaf" style="left: 45%; animation-delay: 5s; font-size: 32px; animation-duration: 15s;">🍃</div>
+    <div class="bg-leaf" style="left: 55%; animation-delay: 9s; font-size: 22px; animation-duration: 17s;">🍃</div>
+    <div class="bg-leaf" style="left: 65%; animation-delay: 2s; font-size: 26px; animation-duration: 13s;">🌿</div>
+    <div class="bg-leaf" style="left: 75%; animation-delay: 7s; font-size: 16px; animation-duration: 19s;">🍃</div>
+    <div class="bg-leaf" style="left: 85%; animation-delay: 4s; font-size: 30px; animation-duration: 14s;">🌿</div>
+    <div class="bg-leaf" style="left: 95%; animation-delay: 6s; font-size: 20px; animation-duration: 16s;">🍃</div>
+    <div class="bg-leaf" style="left: 10%; animation-delay: 11s; font-size: 25px; animation-duration: 15s;">🌿</div>
+    <div class="bg-leaf" style="left: 40%; animation-delay: 12s; font-size: 20px; animation-duration: 14s;">🍃</div>
+    <div class="bg-leaf" style="left: 60%; animation-delay: 10s; font-size: 28px; animation-duration: 18s;">🍃</div>
+    <div class="bg-leaf" style="left: 80%; animation-delay: 14s; font-size: 18px; animation-duration: 12s;">🌿</div>
+    <div class="bg-leaf" style="left: 90%; animation-delay: 13s; font-size: 22px; animation-duration: 16s;">🍃</div>
+    <div class="bg-leaf" style="left: 2%; animation-delay: 2s; font-size: 19px; animation-duration: 16s;">🌿</div>
+    <div class="bg-leaf" style="left: 12%; animation-delay: 7s; font-size: 34px; animation-duration: 13s;">🍃</div>
+    <div class="bg-leaf" style="left: 22%; animation-delay: 1s; font-size: 16px; animation-duration: 19s;">🌿</div>
+    <div class="bg-leaf" style="left: 32%; animation-delay: 5s; font-size: 27px; animation-duration: 15s;">🍃</div>
+    <div class="bg-leaf" style="left: 42%; animation-delay: 11s; font-size: 21px; animation-duration: 17s;">🍃</div>
+    <div class="bg-leaf" style="left: 52%; animation-delay: 4s; font-size: 31px; animation-duration: 12s;">🌿</div>
+    <div class="bg-leaf" style="left: 62%; animation-delay: 8s; font-size: 17px; animation-duration: 18s;">🍃</div>
+    <div class="bg-leaf" style="left: 72%; animation-delay: 3s; font-size: 29px; animation-duration: 14s;">🌿</div>
+    <div class="bg-leaf" style="left: 82%; animation-delay: 13s; font-size: 23px; animation-duration: 15s;">🍃</div>
+    <div class="bg-leaf" style="left: 92%; animation-delay: 9s; font-size: 19px; animation-duration: 16s;">🌿</div>
+    <div class="bg-leaf" style="left: 8%; animation-delay: 6s; font-size: 26px; animation-duration: 13s;">🍃</div>
+    <div class="bg-leaf" style="left: 28%; animation-delay: 10s; font-size: 20px; animation-duration: 17s;">🌿</div>
+    <div class="bg-leaf" style="left: 48%; animation-delay: 14s; font-size: 33px; animation-duration: 14s;">🍃</div>
+    <div class="bg-leaf" style="left: 68%; animation-delay: 12s; font-size: 18px; animation-duration: 19s;">🌿</div>
+    <div class="bg-leaf" style="left: 88%; animation-delay: 5s; font-size: 24px; animation-duration: 15s;">🍃</div>
+
+    <nav class="p-5 flex items-center gap-4 z-40 relative sticky top-0 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-[#74C69D] active:scale-95 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-widest text-white flex-1">Carbon Engine</h1>
+        
+        <!-- CURRENCY SELECTOR -->
+        <div class="relative group">
+            <select id="currency-selector" onchange="changeCurrency(this.value)" class="appearance-none bg-slate-800/50 border border-[#74C69D]/30 text-[#74C69D] text-xs font-bold py-2 pl-3 pr-8 rounded-full outline-none focus:border-[#74C69D] cursor-pointer shadow-[0_0_10px_rgba(116,198,157,0.1)] transition-all">
+                <option value="INR">₹ INR</option>
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
+                <option value="JPY">¥ JPY</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#74C69D]">
+                <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        </div>
+    </nav>
+
+    <main class="px-5 pt-6 max-w-md mx-auto">
+        <section id="timeframe-section" class="glass-card weather-card p-6 rounded-3xl space-y-5 shadow-2xl mb-6 border border-white/10">
+            <div id="weather-layer"></div>
+            <div class="relative z-10 grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="text-xs font-semibold text-[#74C69D] uppercase tracking-wider mb-2 block">Duration</label>
+                    <select id="timeframe" onchange="updateTimeframeUI()" class="input-field appearance-none">
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div id="dynamic-duration-container" class="col-span-2"></div>
+            </div>
+        </section>
+
+        <section id="realtime-section" class="hidden glass-card p-6 rounded-3xl space-y-5 shadow-2xl mb-6 border border-[#74C69D]/30 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#74C69D]/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+            <div class="relative z-10">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-semibold text-[#74C69D] uppercase tracking-wider block">Live Sync</label>
+                    <span class="bg-red-500/20 text-red-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-500/30 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"></span> Realtime
+                    </span>
+                </div>
+                
+                <select id="country-sync" onchange="changeCountrySync(this.value)" class="mb-4 input-field appearance-none py-1.5 text-xs text-[#74C69D] border-[#74C69D]/30 w-auto inline-block">
+                    <option value="local">🌍 Auto (Local Time)</option>
+                    <option value="usa">🇺🇸 United States (NY)</option>
+                    <option value="uk">🇬🇧 United Kingdom (LDN)</option>
+                    <option value="euro">🇪🇺 Europe (Berlin)</option>
+                    <option value="japan">🇯🇵 Japan (Tokyo)</option>
+                </select>
+
+                <h2 id="live-time-display" class="text-4xl font-black text-white font-mono tracking-tight">00:00:00</h2>
+                <p id="live-date-display" class="text-sm text-slate-400 mt-1">Loading...</p>
+            </div>
+        </section>
+
+        <section class="glass-card p-6 rounded-3xl space-y-5 shadow-2xl">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2"><label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">&#9889; Electricity (kWh)</label><input type="number" id="elec" placeholder="e.g. 250" class="input-field"></div>
+                <div><label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">&#128663; Travel (km)</label><input type="number" id="dist" class="input-field"></div>
+                <div><label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">&#9981; Mileage</label><input type="number" id="mileage" value="15" class="input-field"></div>
+                <div><label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">&#9992; Flights (Hrs)</label><input type="number" id="flight" class="input-field"></div>
+                <div><label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">&#128293; LPG (kg)</label><input type="number" id="lpg" class="input-field"></div>
+            </div>
+            <button onclick="calculateImpact()" class="w-full mt-4 bg-[#74C69D] text-[#0B0C10] font-bold text-lg py-4 rounded-xl shadow-[0_0_15px_rgba(116,198,157,0.4)] active:scale-95 transition-transform">
+                Analyze Impact
+            </button>
+        </section>
+
+        <div id="results">
+            <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden mt-6">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500/20 rounded-full blur-3xl" id="danger-glow"></div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Generated Footprint</p>
+                <h2 class="text-5xl font-black text-white my-2"><span id="co2-total">0</span> <span class="text-xl font-medium text-slate-400">kg CO&#8322;</span></h2>
+                <p class="text-xs text-[#74C69D] mt-4 font-bold" id="sync-status">Checking Cloud Ledger...</p>
+            </div>
+        </div>
+                    <div class="mt-8 space-y-3" id="portfolio-alloc"></div>
+
+    </main>
+
+    <div id="conflict-modal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="glass-card p-6 rounded-3xl max-w-sm w-[90%] border border-yellow-500/50 text-center relative overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/30 rounded-full blur-3xl animate-pulse"></div>
+            <svg class="w-14 h-14 text-yellow-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <h3 class="text-2xl font-black text-white mb-2">Data Collision</h3>
+            <p class="text-sm text-slate-300 mb-6 leading-relaxed">You already have <span id="modal-existing" class="text-yellow-400 font-bold bg-yellow-400/10 px-2 py-1 rounded"></span> kg saved for <span id="modal-label" class="text-white font-bold border-b border-[#74C69D]"></span>.</p>
+            
+            <div class="space-y-3">
+                <button onclick="resolveConflict('add')" class="w-full py-4 bg-[#74C69D] text-[#0B0C10] font-bold rounded-xl active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                    <span class="text-xl">&#10133;</span> Accumulate (Add)
+                </button>
+                <button onclick="resolveConflict('overwrite')" class="w-full py-4 bg-slate-800 text-white font-bold rounded-xl border border-white/10 active:scale-95 flex items-center justify-center gap-2">
+                    <span class="text-xl">&#9888;</span> Overwrite (Replace)
+                </button>
+                <button onclick="closeModal()" class="w-full py-3 text-slate-500 font-bold active:scale-95">Cancel Sync</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const weatherLayer = document.getElementById('weather-layer');
+        const timeframeSection = document.getElementById('timeframe-section');
+
+        function updateTimeframeUI() {
+            const tf = document.getElementById('timeframe').value;
+            const container = document.getElementById('dynamic-duration-container');
+            weatherLayer.innerHTML = ''; 
+            timeframeSection.style.borderColor = "rgba(255, 255, 255, 0.1)";
+            timeframeSection.style.background = "rgba(255, 255, 255, 0.03)";
+            
+            if(tf === 'monthly') {
+                container.innerHTML = `<label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">Select Month</label><select id="month-select" onchange="triggerWeather()" class="input-field appearance-none"><option value="1">January (Winter)</option><option value="2">February (Winter)</option><option value="3">March (Spring)</option><option value="4">April (Spring)</option><option value="5">May (Spring)</option><option value="6">June (Summer)</option><option value="7">July (Summer)</option><option value="8">August (Summer)</option><option value="9">September (Autumn)</option><option value="10">October (Autumn)</option><option value="11">November (Autumn)</option><option value="12">December (Winter)</option></select>`;
+                triggerWeather(); 
+            } else if (tf === 'quarterly') {
+                container.innerHTML = `<label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">Select Quarter</label><select id="quarter-select" class="input-field appearance-none"><option value="Q1">Q1 (Jan - Mar)</option><option value="Q2">Q2 (Apr - Jun)</option><option value="Q3">Q3 (Jul - Sep)</option><option value="Q4">Q4 (Oct - Dec)</option></select>`;
+            } else if (tf === 'yearly') {
+                container.innerHTML = `<label class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 block">Enter Year</label><input type="number" id="year-select" value="2026" class="input-field">`;
+            }
+        }
+
+        function triggerWeather() {
+            weatherLayer.innerHTML = ''; 
+            const month = parseInt(document.getElementById('month-select').value) || 1;
+            let type = ''; let count = 15;
+            
+            if(month === 12 || month === 1 || month === 2) { 
+                type = 'snow'; timeframeSection.style.borderColor = "rgba(147, 197, 253, 0.3)"; timeframeSection.style.background = "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(147,197,253,0.1) 100%)";
+            } else if(month >= 3 && month <= 5) { 
+                type = 'petal'; timeframeSection.style.borderColor = "rgba(244, 114, 182, 0.3)"; timeframeSection.style.background = "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(244,114,182,0.1) 100%)";
+            } else if(month >= 6 && month <= 8) { 
+                weatherLayer.innerHTML = '<div class="sun-glow"></div>'; timeframeSection.style.borderColor = "rgba(253, 224, 71, 0.3)"; timeframeSection.style.background = "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(253,224,71,0.05) 100%)"; return;
+            } else if(month >= 9 && month <= 11) { 
+                type = 'leaf'; count = 10; timeframeSection.style.borderColor = "rgba(217, 119, 6, 0.3)"; timeframeSection.style.background = "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(217,119,6,0.1) 100%)";
+            }
+
+            for(let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = `particle ${type}`;
+                const size = Math.random() * 8 + 4;
+                p.style.width = `${size}px`; p.style.height = `${size}px`;
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                p.style.animationDelay = `${Math.random() * 2}s`;
+                weatherLayer.appendChild(p);
+            }
+        }
+        
+        let isRealtime = false;
+        document.addEventListener('DOMContentLoaded', () => {
+            isRealtime = localStorage.getItem('realtimeMode') === 'on';
+            if (isRealtime) {
+                document.getElementById('timeframe-section').classList.add('hidden');
+                document.getElementById('realtime-section').classList.remove('hidden');
+                startLiveClock();
+            } else {
+                updateTimeframeUI();
+            }
+        });
+
+        function startLiveClock() {
+            function updateClock() {
+                const now = new Date();
+                const formatterTime = new Intl.DateTimeFormat('en-US', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+                    timeZone: window.realtimeTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+                });
+                const formatterDate = new Intl.DateTimeFormat('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    timeZone: window.realtimeTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+                });
+                document.getElementById('live-time-display').innerText = formatterTime.format(now);
+                document.getElementById('live-date-display').innerText = formatterDate.format(now);
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
+        // Modal manual toggle controls
+        window.openModal = function() {
+            document.getElementById('conflict-modal').classList.remove('hidden');
+            document.getElementById('conflict-modal').classList.add('flex');
+        }
+        window.closeModal = function() {
+            document.getElementById('conflict-modal').classList.add('hidden');
+            document.getElementById('conflict-modal').classList.remove('flex');
+            document.getElementById('sync-status').innerText = "Sync Cancelled.";
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFaSTwrX38nSEPudYm-8iJLwdoJXGCfM8",
+            authDomain: "strata-ca81c.firebaseapp.com",
+            projectId: "strata-ca81c",
+            storageBucket: "strata-ca81c.firebasestorage.app",
+            messagingSenderId: "863301861425",
+            appId: "1:863301861425:web:a3b02f32b262df517e5510",
+            measurementId: "G-PWVNP4LW7T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+        
+        window.pendingCloudData = {};
+
+        onAuthStateChanged(auth, (user) => { if (user) currentUser = user; });
+
+        window.calculateImpact = async function() {
+            if (!currentUser) {
+                document.getElementById('sync-status').innerText = "Not logged in.";
+                return;
+            }
+
+            const elec = parseFloat(document.getElementById('elec').value) || 0;
+            const dist = parseFloat(document.getElementById('dist').value) || 0;
+            const mileage = parseFloat(document.getElementById('mileage').value) || 15; 
+            const flight = parseFloat(document.getElementById('flight').value) || 0;
+            const lpg = parseFloat(document.getElementById('lpg').value) || 0;
+
+            const fuelLiters = dist / mileage;
+            const totalCO2 = parseFloat(((elec * 0.71) + (fuelLiters * 2.31) + (flight * 90) + (lpg * 3.0)).toFixed(1));
+            
+            document.getElementById('co2-total').innerText = totalCO2;
+                        // --- PORTFOLIO ALLOCATION ENGINE ---
+            const suggestedInvestment = Math.round(totalCO2 * 15);
+            const allocs = [
+                {name: "Tata Power", perc: 0.30, color: "border-[#74C69D]"},
+                {name: "Adani Green", perc: 0.25, color: "border-[#74C69D]"},
+                {name: "IREDA", perc: 0.20, color: "border-[#74C69D]"},
+                {name: "Suzlon Energy", perc: 0.15, color: "border-[#74C69D]"},
+                {name: "Green Bonds", perc: 0.10, color: "border-slate-600 opacity-80"}
+            ];
+            
+            const portDiv = document.getElementById('portfolio-alloc');
+            portDiv.innerHTML = `<h3 class="text-sm font-semibold text-slate-300 mb-2">Offset Cost: ${formatCurrency(suggestedInvestment)}</h3>`;
+            
+            allocs.forEach(a => {
+                const amt = Math.round(suggestedInvestment * a.perc);
+                portDiv.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl flex justify-between items-center border-l-4 ${a.color} shadow-lg">
+                        <div><p class="font-bold text-sm text-white">${a.name}</p><p class="text-[10px] text-slate-500 uppercase tracking-wider">Allocation: ${a.perc*100}%</p></div>
+                        <div class="text-right"><p class="font-mono text-sm text-[#74C69D] font-bold">${formatCurrency(amt)}</p></div>
+                    </div>`;
+            });
+            
+            // GREEN ADVICE (If Realtime)
+            if (isRealtime && totalCO2 > 0) {
+                const treesNeeded = Math.ceil(totalCO2 / 10); 
+                const cycleKm = Math.ceil(totalCO2 / 0.2); 
+                const recycleKg = Math.ceil(totalCO2 / 1.4); 
+
+                portDiv.innerHTML += `
+                    <h3 class="text-sm font-semibold text-[#74C69D] mt-6 mb-2 uppercase tracking-wider">Realtime Green Advice</h3>
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-emerald-500 shadow flex items-center justify-between">
+                            <span class="text-white text-xs font-bold">&#127795; Plant Trees</span>
+                            <span class="text-emerald-400 font-mono font-bold text-sm">${treesNeeded}</span>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-blue-500 shadow flex items-center justify-between">
+                            <span class="text-white text-xs font-bold">&#128690; Cycle Instead</span>
+                            <span class="text-blue-400 font-mono font-bold text-sm">${cycleKm} km</span>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-teal-500 shadow flex items-center justify-between">
+                            <span class="text-white text-xs font-bold">&#9851; Recycle E-Waste</span>
+                            <span class="text-teal-400 font-mono font-bold text-sm">${recycleKg} kg</span>
+                        </div>
+                    </div>
+                `;
+            }
+            // ------------------------------------
+
+            document.getElementById('results').classList.add('show');
+            setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 300);
+
+            const tf = document.getElementById('timeframe').value;
+            let bucketName = "";
+            let displayLabel = "";
+
+            if (isRealtime) {
+                const now = new Date();
+                // Store exact time with 'realtime_' prefix
+                bucketName = "realtime_" + now.toISOString();
+                displayLabel = now.toLocaleString();
+            } else if (tf === 'monthly') {
+                const m = document.getElementById('month-select').value;
+                bucketName = "month_" + m;
+                const months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                displayLabel = months[m];
+            } else if (tf === 'quarterly') {
+                const q = document.getElementById('quarter-select').value;
+                bucketName = "quarter_" + q;
+                displayLabel = q;
+            } else if (tf === 'yearly') {
+                const y = document.getElementById('year-select').value || "2026";
+                bucketName = "year_" + y;
+                displayLabel = "Year " + y;
+            }
+
+            try {
+                const docRef = doc(db, "users", currentUser.uid);
+                const docSnap = await getDoc(docRef);
+
+                // STRICT CHECK: Does this bucket key already exist in the database with a valid number?
+                if (docSnap.exists() && docSnap.data()[bucketName] != null) {
+                    const existingVal = docSnap.data()[bucketName];
+                    document.getElementById('modal-existing').innerText = existingVal;
+                    document.getElementById('modal-label').innerText = displayLabel;
+                    
+                    window.pendingCloudData = { bucket: bucketName, newVal: totalCO2, oldVal: existingVal };
+                    
+                    // Trigger the rock-solid Tailwind Modal
+                    window.openModal();
+                    document.getElementById('sync-status').innerText = "Action required in popup...";
+                } else {
+                    await saveToCloud(bucketName, totalCO2);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        window.resolveConflict = async function(action) {
+            window.closeModal();
+            let finalCO2 = window.pendingCloudData.newVal;
+
+            if (action === 'add') {
+                finalCO2 = parseFloat((window.pendingCloudData.oldVal + window.pendingCloudData.newVal).toFixed(1));
+            }
+            await saveToCloud(window.pendingCloudData.bucket, finalCO2);
+        }
+
+        async function saveToCloud(bucketName, finalCO2) {
+            document.getElementById('sync-status').innerHTML = `<span class="animate-pulse">Syncing...</span>`;
+            const suggestedInvestment = Math.round(finalCO2 * 15);
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    carbonFootprint: finalCO2, 
+                    suggestedInvestment: suggestedInvestment,
+                    lastUpdated: new Date().toISOString(),
+                    [bucketName]: finalCO2 
+                }, { merge: true });
+                document.getElementById('sync-status').innerHTML = `Synced securely to ${bucketName.replace('_', ' ')}! &#9989;`;
+                document.getElementById('co2-total').innerText = finalCO2; 
+            } catch (e) {
+                console.error("Cloud Error: ", e);
+                document.getElementById('sync-status').innerText = "Cloud Sync Failed.";
+            }
+        }
+    </script>
+</body>
+</html>

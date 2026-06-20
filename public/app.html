@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Green Investment App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            /* Layered Onyx, Primary Green, and Accent Green Gradient */
+            background: linear-gradient(135deg, #0B0C10 0%, #0B0C10 40%, #2D6A4F 80%, #74C69D 100%);
+            background-size: 200% 200%;
+            animation: gradientMove 8s ease infinite;
+        }
+
+        /* Smooth background movement */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Fade in and out for the quotes */
+        .fade-transition {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .fade-visible {
+            opacity: 1;
+        }
+
+        /* Golden Coin Glow */
+        .coin-glow {
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+        }
+                /* Radar Pulse Rings */
+        .pulse-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(116, 198, 157, 0.4);
+            animation: pulseRing 3s ease-out infinite;
+            z-index: 1;
+        }
+        .ring-1 { width: 140px; height: 140px; animation-delay: 0s; }
+        .ring-2 { width: 200px; height: 200px; animation-delay: 0.8s; }
+        .ring-3 { width: 260px; height: 260px; animation-delay: 1.6s; }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col items-center justify-center text-slate-100 overflow-hidden">
+
+    <div class="flex flex-col items-center justify-center z-10 w-full px-6">
+        
+                <div class="flex flex-col items-center mb-8 z-10 mt-8">
+            
+            <div class="relative flex items-center justify-center w-64 h-64 mb-4">
+                <div class="pulse-ring ring-1"></div>
+                <div class="pulse-ring ring-2"></div>
+                <div class="pulse-ring ring-3"></div>
+                
+                <img src="logo.png" alt="STRATA Logo" class="relative w-48 drop-shadow-2xl rounded-3xl mix-blend-screen z-10">
+            </div>
+            
+            <h1 class="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-[#74C69D]">
+                STRATA
+            </h1>
+            <p class="text-xs text-slate-400 mt-2 tracking-[0.2em] uppercase">A Nectrra Undertaking</p>
+        </div>
+
+
+        <div class="h-24 flex items-center justify-center text-center mt-4">
+            <div id="quote-container" class="fade-transition flex items-center gap-3 bg-white/5 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 max-w-sm">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 flex items-center justify-center text-yellow-900 font-bold text-sm coin-glow shrink-0">
+                    ₹
+                </div>
+                <p id="quote-text" class="text-sm font-light leading-relaxed text-slate-200">
+                    Initializing...
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="absolute bottom-10 w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div class="h-full bg-[#74C69D] animate-[loading_9s_ease-in-out_forwards]"></div>
+    </div>
+
+    <style>
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+    </style>
+
+    <script>
+        // Array of Moral Thoughts
+        const quotes = [
+            "A deposit towards sustainability is an investment for the next generation.",
+            "Green wealth is the only true wealth.",
+            "Your portfolio has the power to heal the planet."
+        ];
+
+        let currentIndex = 0;
+        const quoteText = document.getElementById('quote-text');
+        const quoteContainer = document.getElementById('quote-container');
+
+        // Function to change the quote
+        function updateQuote() {
+            // Fade out
+            quoteContainer.classList.remove('fade-visible');
+            
+            setTimeout(() => {
+                // Change text while faded out
+                quoteText.innerText = quotes[currentIndex];
+                // Fade back in
+                quoteContainer.classList.add('fade-visible');
+                
+                // Move to next quote
+                currentIndex = (currentIndex + 1) % quotes.length;
+            }, 500); // Wait 0.5s for fade out to complete
+        }
+
+        // Start sequence
+        updateQuote(); // Show first quote immediately
+        setInterval(updateQuote, 3000); // Change every 3 seconds
+
+        // Redirect to Auth page after 9 seconds (so all 3 quotes show)
+        setTimeout(() => {
+            window.location.href = 'auth.html';
+        }, 9000);
+    </script>
+</body>
+</html>

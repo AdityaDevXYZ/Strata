@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STRATA - Documentation & Wiki</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #050608;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(116, 198, 157, 0.3);
+            border-radius: 10px;
+        }
+
+        .blueprint-grid {
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="p-6 pt-10 sticky top-0 z-40 bg-[#050608]/80 backdrop-blur-xl border-b border-white/5 flex items-center gap-4">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-white hover:bg-slate-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <div>
+            <h1 class="text-xl font-black tracking-tight">Tech Wiki & Docs</h1>
+            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">STRATA Architecture</p>
+        </div>
+    </header>
+
+    <main class="p-5 space-y-6">
+
+        <!-- 1. What is 1kg of CO2 -->
+        <section class="glass-card p-6 rounded-3xl relative overflow-hidden fade-in-up">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+            
+            <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-xl border border-red-500/30">☁️</div>
+                <h2 class="text-lg font-black text-white">What is 1kg of CO₂?</h2>
+            </div>
+            
+            <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                Carbon dioxide is an invisible gas, making it hard to visualize its physical impact on the climate. In STRATA, we measure your footprint in exact kilograms. To put <span class="text-red-400 font-bold">1 kg of CO₂</span> into perspective, it is mathematically equivalent to:
+            </p>
+            
+            <div class="space-y-2">
+                <div class="bg-black/30 p-3 rounded-xl border border-white/5 flex items-center justify-between">
+                    <span class="text-xs text-slate-300 flex items-center gap-2">🚗 Driving a standard petrol car for</span>
+                    <span class="text-sm font-bold text-white">~4.0 km</span>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-white/5 flex items-center justify-between">
+                    <span class="text-xs text-slate-300 flex items-center gap-2">📱 Fully charging a smartphone</span>
+                    <span class="text-sm font-bold text-white">~122 times</span>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-white/5 flex items-center justify-between">
+                    <span class="text-xs text-slate-300 flex items-center gap-2">🔥 Burning solid coal</span>
+                    <span class="text-sm font-bold text-white">~0.4 kg</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. How Activities Reduce CO2 -->
+        <section class="glass-card p-6 rounded-3xl relative overflow-hidden fade-in-up delay-100">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-[#74C69D] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+            
+            <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="w-10 h-10 rounded-full bg-[#74C69D]/20 flex items-center justify-center text-[#74C69D] text-xl border border-[#74C69D]/30">🌱</div>
+                <h2 class="text-lg font-black text-white">How Activities Reduce CO₂</h2>
+            </div>
+            
+            <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                When you log an action in STRATA, you are offsetting your emissions. Here is exactly how much you save and why:
+            </p>
+            
+            <div class="space-y-4">
+                <!-- Cycling -->
+                <div class="border-l-2 border-blue-500 pl-4 py-1">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">🚲 Cycling Commute</h3>
+                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-1">Saves 0.2 kg CO₂ per km</p>
+                    <p class="text-xs text-slate-400">By choosing to cycle instead of driving a fossil-fuel vehicle, you directly prevent tailpipe emissions from entering the atmosphere. The 0.2kg metric represents the average emission of a standard ICE (Internal Combustion Engine) vehicle per kilometer.</p>
+                </div>
+                
+                <!-- Diet -->
+                <div class="border-l-2 border-emerald-500 pl-4 py-1">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">🥗 Plant-Based Meal</h3>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1">Saves 1.5 kg CO₂ per meal</p>
+                    <p class="text-xs text-slate-400">Meat production (especially beef) requires massive amounts of land, water, and generates high methane emissions. Swapping one heavy meat meal for a vegan alternative reduces supply-chain emissions by approximately 1.5kg.</p>
+                </div>
+
+                <!-- Recycling -->
+                <div class="border-l-2 border-teal-500 pl-4 py-1">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">♻️ E-Waste Recycling</h3>
+                    <p class="text-[10px] text-teal-400 font-bold uppercase tracking-wider mb-1">Saves 1.4 kg CO₂ per kg</p>
+                    <p class="text-xs text-slate-400">Mining raw rare-earth metals for electronics is extremely carbon-intensive. By safely recycling e-waste, you reintroduce processed materials into the supply chain, averting 1.4kg of mining emissions per kg recycled.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. The Math & Formulas -->
+        <section class="glass-card p-6 rounded-3xl relative overflow-hidden fade-in-up delay-200">
+            <div class="absolute bottom-0 right-0 w-40 h-40 bg-purple-500 rounded-full blur-[90px] opacity-20 pointer-events-none"></div>
+            
+            <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-xl border border-purple-500/30">➗</div>
+                <h2 class="text-lg font-black text-white">System Formulas</h2>
+            </div>
+            
+            <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                STRATA's ledger engine relies on exact mathematical formulas to compute your Net Score dynamically.
+            </p>
+
+            <div class="space-y-3 font-mono">
+                <!-- Formula 1 -->
+                <div class="bg-black/50 p-4 rounded-xl border border-white/5">
+                    <p class="text-[9px] text-purple-400 uppercase tracking-widest mb-1 font-sans font-bold">1. The Net Score Equation</p>
+                    <p class="text-sm text-white">NetScore = Generated - (Reduced + Restored)</p>
+                </div>
+                
+                <!-- Formula 2 -->
+                <div class="bg-black/50 p-4 rounded-xl border border-white/5">
+                    <p class="text-[9px] text-purple-400 uppercase tracking-widest mb-1 font-sans font-bold">2. Baseline Generation Rate</p>
+                    <p class="text-xs text-slate-300">Generated = 1.2 kg * DaysElapsed</p>
+                    <p class="text-[10px] text-slate-500 mt-1 font-sans">Assuming a conservative base generation of 1.2kg/day for a standard user before specific footprint surveys.</p>
+                </div>
+
+                <!-- Formula 3 -->
+                <div class="bg-black/50 p-4 rounded-xl border border-white/5">
+                    <p class="text-[9px] text-purple-400 uppercase tracking-widest mb-1 font-sans font-bold">3. Investment Restorations (Trees)</p>
+                    <p class="text-xs text-slate-300">Restored = (Trees * 10.0) / Month</p>
+                    <p class="text-[10px] text-slate-500 mt-1 font-sans">Used in the Green Action Allocator. A mature tree offsets exactly 10kg per month.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Technical Blueprint -->
+        <section class="glass-card rounded-3xl relative overflow-hidden fade-in-up delay-300 blueprint-grid border-blue-500/30">
+            <div class="p-6 bg-blue-950/40 backdrop-blur-sm h-full w-full">
+                <div class="flex items-center gap-3 mb-6 relative z-10">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xl border border-blue-500/30">⚙️</div>
+                    <h2 class="text-lg font-black text-white">Technical Alignment</h2>
+                </div>
+
+                <p class="text-sm text-blue-100 leading-relaxed mb-6">
+                    A high-level blueprint of the APIs, logic nodes, and infrastructure wiring that power STRATA's real-time capabilities.
+                </p>
+
+                <div class="relative">
+                    <!-- Vertical Timeline Line -->
+                    <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-blue-500/30"></div>
+
+                    <!-- Node 1 -->
+                    <div class="relative pl-10 mb-6">
+                        <div class="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-orange-500 border-[3px] border-[#050608] shadow-[0_0_10px_rgba(249,115,22,0.8)]"></div>
+                        <h4 class="text-sm font-bold text-orange-400">Firebase Backend</h4>
+                        <p class="text-[10px] text-orange-200/70 font-mono mb-1">Auth & Firestore DB</p>
+                        <p class="text-xs text-blue-100/80">Provides secure user authentication. Firestore securely synchronizes the user's `Generated`, `Reduced`, and `Restored` metrics to the cloud in real-time.</p>
+                    </div>
+
+                    <!-- Node 2 -->
+                    <div class="relative pl-10 mb-6">
+                        <div class="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-blue-400 border-[3px] border-[#050608] shadow-[0_0_10px_rgba(96,165,250,0.8)]"></div>
+                        <h4 class="text-sm font-bold text-blue-400">Gemini 1.5 Flash AI Engine</h4>
+                        <p class="text-[10px] text-blue-200/70 font-mono mb-1">REST API • Multimodal • NLP</p>
+                        <p class="text-xs text-blue-100/80">Google's cutting-edge AI powers two critical nodes: <br>1. <b>Lithos AI Coach</b> (Context-aware personalized text chat)<br>2. <b>NECTRRA Vision</b> (Real-time Base64 image ingestion for waste classification and treatment JSON generation).</p>
+                    </div>
+
+                    <!-- Node 3 -->
+                    <div class="relative pl-10 mb-6">
+                        <div class="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-[3px] border-[#050608] shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
+                        <h4 class="text-sm font-bold text-emerald-400">OpenStreetMap / Overpass API</h4>
+                        <p class="text-[10px] text-emerald-200/70 font-mono mb-1">Geospatial Radar Querying</p>
+                        <p class="text-xs text-blue-100/80">Used by the "Eco Hubs Near You" system. Dynamically queries coordinates for NWR (nodes, ways, relations) tags like `shop=florist`, `amenity=recycling`, or `office=ngo` within a 5km radius to guide local action.</p>
+                    </div>
+
+                    <!-- Node 4 -->
+                    <div class="relative pl-10">
+                        <div class="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-slate-400 border-[3px] border-[#050608] shadow-[0_0_10px_rgba(148,163,184,0.8)]"></div>
+                        <h4 class="text-sm font-bold text-slate-300">Open-Meteo & Nominatim API</h4>
+                        <p class="text-[10px] text-slate-400 font-mono mb-1">Environment Metrics</p>
+                        <p class="text-xs text-blue-100/80">Uses GPS to hit Open-Meteo for real-time European AQI, while Nominatim performs reverse-geocoding to translate exact latitude/longitude into human-readable city localities.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-white/5 bg-black/50 py-12 mt-8">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-black tracking-widest text-[#74C69D] uppercase">STRATA</span>
+            </div>
+            <p class="text-xs text-slate-500">© 2026 NECTRRA Ecosystem. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Support Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0B0C10;
+            background-image: 
+                linear-gradient(rgba(116, 198, 157, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(116, 198, 157, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px; /* Tech Grid Background */
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(116, 198, 157, 0.1);
+        }
+
+        /* Radar Pulse Animation for Email */
+        @keyframes radarGlow {
+            0% { box-shadow: 0 0 0 0 rgba(116, 198, 157, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(116, 198, 157, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(116, 198, 157, 0); }
+        }
+        .email-btn {
+            animation: radarGlow 2.5s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen relative overflow-x-hidden">
+
+    <nav class="p-5 flex items-center gap-4 border-b border-[#74C69D]/20 bg-[#0B0C10]/80 backdrop-blur-md sticky top-0 z-50">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-800 border border-[#74C69D]/30 flex items-center justify-center text-[#74C69D] active:scale-95 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-widest text-white uppercase">Comms <span class="text-[#74C69D]">Link</span></h1>
+    </nav>
+
+    <main class="px-5 pt-8 max-w-md mx-auto space-y-8 pb-12">
+        
+        <div class="text-center space-y-3 relative">
+            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[#2D6A4F] to-[#74C69D] flex items-center justify-center shadow-[0_0_30px_rgba(116,198,157,0.3)] mb-4">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-black tracking-wider text-white">STRATA INTELLIGENCE</h2>
+            <p class="text-sm text-[#74C69D] font-mono tracking-widest uppercase">By NECTRRA Group</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-[#74C69D]"></div>
+            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-2">Our Directive</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                STRATA is the bridge between personal accountability and global financial growth. We engineer algorithms to transform your carbon footprint into a highly optimized green investment portfolio.
+            </p>
+        </div>
+
+        <div class="mt-12">
+            <p class="text-center text-xs text-slate-500 uppercase tracking-widest mb-6">Initialize Secure Connection</p>
+            
+            <button onclick="window.location.href='mailto:nectrragroup@gmail.com'" class="email-btn w-full bg-[#0B0C10] border-2 border-[#74C69D] rounded-2xl p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform relative overflow-hidden group">
+                <div class="absolute inset-0 bg-[#74C69D]/10 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300"></div>
+                
+                <svg class="w-8 h-8 text-[#74C69D] z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <span class="text-lg font-bold text-white tracking-widest z-10 font-mono">nectrragroup@gmail.com</span>
+                <span class="text-xs text-[#74C69D] z-10 uppercase tracking-widest">Tap to Transmit</span>
+            </button>
+        </div>
+
+    </main>
+</body>
+</html>

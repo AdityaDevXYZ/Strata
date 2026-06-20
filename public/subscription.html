@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRATA | Pro Subscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #0B0C10; 
+            background-image: radial-gradient(circle at top center, rgba(116, 198, 157, 0.15) 0%, #0B0C10 60%); 
+            background-attachment: fixed; 
+        }
+        
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.02); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        /* The Premium Shine Animation */
+        .pro-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(116, 198, 157, 0.4);
+            box-shadow: 0 0 30px rgba(116, 198, 157, 0.15);
+        }
+        .pro-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg);
+            animation: shine 4s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        /* Indestructible Toggle CSS */
+        #billing-toggle:checked ~ .dot { transform: translateX(100%); background-color: #0B0C10; }
+        #billing-toggle:checked ~ .toggle-bg { background-color: #74C69D; border-color: #74C69D; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12 overflow-x-hidden">
+
+    <nav class="p-5 flex items-center gap-4 z-40 relative sticky top-0 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5 shadow-md">
+        <button onclick="window.location.href='home.html'" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-[#74C69D] active:scale-95 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <h1 class="text-xl font-bold tracking-widest text-white uppercase">Upgrade</h1>
+    </nav>
+
+    <main class="px-5 pt-8 max-w-md mx-auto space-y-8">
+        
+        <div class="text-center space-y-3 mt-4">
+            <div class="inline-block p-3 rounded-full bg-[#74C69D]/10 text-[#74C69D] mb-2 animate-pulse">
+                <span class="text-3xl">&#128142;</span>
+            </div>
+            <h2 class="text-3xl font-black text-white tracking-tight">Unlock STRATA <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#74C69D] to-emerald-300">PRO</span></h2>
+            <p class="text-sm text-slate-400 leading-relaxed">Join the elite tier of the NECTRRA ecosystem. Gain access to predictive AI, tax-ready exports, and exclusive status.</p>
+        </div>
+
+        <div class="flex flex-col items-center justify-center gap-3 mt-6">
+            <div class="flex items-center gap-4">
+                <span class="text-sm font-bold text-slate-300" id="label-monthly">Monthly</span>
+                
+                <label for="billing-toggle" class="flex items-center cursor-pointer relative">
+                    <input type="checkbox" id="billing-toggle" class="sr-only" onchange="togglePricing()">
+                    <div class="toggle-bg block bg-slate-700 w-14 h-8 rounded-full border-2 border-slate-600 transition-colors duration-300"></div>
+                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300"></div>
+                </label>
+                
+                <span class="text-sm font-bold text-slate-500 transition-colors" id="label-yearly">Annually</span>
+            </div>
+            <span class="bg-yellow-500/20 text-yellow-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-yellow-500/30 animate-pulse">Save 20% on Annual</span>
+        </div>
+
+        <div class="space-y-6 mt-8">
+            
+            <div class="glass-card pro-card p-6 rounded-3xl relative">
+                <div class="absolute top-0 right-0 bg-[#74C69D] text-[#0B0C10] text-[10px] font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest shadow-lg">Early Bird</div>
+                
+                <h3 class="text-xl font-bold text-white mb-1">STRATA Pro</h3>
+                <div class="flex items-end gap-1 mb-6">
+                    <span class="text-4xl font-black text-[#74C69D]">&#8377;<span id="price-display">49</span></span>
+                    <span class="text-sm text-slate-400 mb-1" id="duration-display">/mo</span>
+                </div>
+
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start gap-3 text-sm text-slate-200">
+                        <span class="text-[#74C69D] mt-0.5">&#10004;</span> 
+                        <div><strong class="text-white block">AI Emission Forecasting</strong>Predictive modeling for your future footprint.</div>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm text-slate-200">
+                        <span class="text-[#74C69D] mt-0.5">&#10004;</span> 
+                        <div><strong class="text-white block">Tax-Ready Ledger Exports</strong>Auto-generate PDF reports for green investment filing.</div>
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-200">
+                        <span class="text-[#74C69D]">&#10004;</span> Unlock Exclusive Eco Badges &#127941;
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-200">
+                        <span class="text-[#74C69D]">&#10004;</span> Generate NECTRRA API Keys
+                    </li>
+                </ul>
+
+                <button onclick="initiateCheckout()" class="w-full bg-gradient-to-r from-[#2D6A4F] to-[#74C69D] text-white font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(116,198,157,0.4)] active:scale-95 transition-transform">
+                    Upgrade to Pro
+                </button>
+            </div>
+
+            <div class="glass-card p-6 rounded-3xl border border-slate-800">
+                <h3 class="text-lg font-bold text-slate-300 mb-1">Citizen Tier</h3>
+                <p class="text-2xl font-black text-slate-500 mb-6">&#8377;0 <span class="text-sm font-normal">/mo</span></p>
+                
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-3 text-sm text-slate-400">
+                        <span class="text-slate-600">&#10004;</span> Basic Carbon Tracker Engine
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-400">
+                        <span class="text-slate-600">&#10004;</span> 12-Month Ledger History
+                    </li>
+                </ul>
+                <button disabled class="w-full bg-slate-800/50 text-slate-500 font-bold py-3 rounded-xl cursor-not-allowed border border-white/5">
+                    Current Plan
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Flawless Pricing Engine
+        function togglePricing() {
+            const isYearly = document.getElementById('billing-toggle').checked;
+            const priceDisplay = document.getElementById('price-display');
+            const durationDisplay = document.getElementById('duration-display');
+            const labelMonthly = document.getElementById('label-monthly');
+            const labelYearly = document.getElementById('label-yearly');
+
+            if (isYearly) {
+                // Annual Math: ₹49 * 12 = 588. 20% off = ₹469/year.
+                priceDisplay.innerText = "469";
+                durationDisplay.innerText = "/yr";
+                labelYearly.classList.replace('text-slate-500', 'text-slate-300');
+                labelMonthly.classList.replace('text-slate-300', 'text-slate-500');
+            } else {
+                priceDisplay.innerText = "49";
+                durationDisplay.innerText = "/mo";
+                labelMonthly.classList.replace('text-slate-500', 'text-slate-300');
+                labelYearly.classList.replace('text-slate-300', 'text-slate-500');
+            }
+        }
+
+        // Mock Checkout Gateway
+        function initiateCheckout() {
+            const btn = document.querySelector('.pro-card button');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<span class="animate-pulse">Connecting to Gateway...</span>`;
+            
+            setTimeout(() => {
+                alert("NECTRRA Payment Gateway (Sandbox Mode)\n\nIn the future, this will open Razorpay or Stripe to process the subscription and instantly update the user's Firebase accountType to 'PRO'.");
+                btn.innerHTML = originalText;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
